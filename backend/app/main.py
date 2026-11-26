@@ -15,10 +15,13 @@ from sqlalchemy import text
 
 from app.api import (
     access_points,
+    agents,
     anomalies,
     auth,
+    copilot,
     dashboard,
     devices,
+    host,
     intelligence,
     live,
     monitoring,
@@ -27,6 +30,7 @@ from app.api import (
     settings as settings_api,
     tests as tests_api,
     tickets,
+    topology,
     troubleshooting,
 )
 from app.core.config import PROJECT_DIR, settings
@@ -142,6 +146,10 @@ app.include_router(settings_api.router, prefix=prefix)
 app.include_router(intelligence.router, prefix=prefix)
 app.include_router(notifications.router, prefix=prefix)
 app.include_router(live.router, prefix=prefix)
+app.include_router(host.router, prefix=prefix)
+app.include_router(agents.router, prefix=prefix)
+app.include_router(copilot.router, prefix=prefix)
+app.include_router(topology.router, prefix=prefix)
 
 
 @app.get(f"{prefix}/health", tags=["System"])

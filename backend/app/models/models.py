@@ -484,3 +484,129 @@ class LoginAttempt(Base):
     attempted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )
+
+
+class Agent(Base, TimestampMixin):
+    """Registered telemetry source: the local host or an authenticated remote agent.
+
+    Only a SHA-256 hash of the agent token is persisted. The plaintext token is
+    returned once when the agent is registered or its token is rotated.
+    """
+
+    __tablename__ = "agents"
+    __table_args__ = (
+        Index("ix_agents_kind_status", "kind", "status"),
+        Index("ix_agents_last_seen", "last_seen_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+    kind: Mapped[str] = mapped_column(String(20), default="remote", nullable=False, index=True)
+    hostname: Mapped[str | None] = mapped_column(String(255))
+    ip_address: Mapped[str | None] = mapped_column(String(64))
+    os_name: Mapped[str | None] = mapped_column(String(120))
+    agent_version: Mapped[str | None] = mapped_column(String(40))
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    token_prefix: Mapped[str] = mapped_column(String(16), default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="never", nullable=False, index=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    token_last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+    metadata_json: Mapped[dict[str, Any]] = mapped_column(
+        "metadata", JSON, default=dict, nullable=False
+    )
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+
+    metrics: Mapped[list["HostMetric"]] = relationship(
+        back_populates="agent", cascade="all, delete-orphan"
+    )
+
+
+class HostMetric(Base):
+    """One real host telemetry observation from psutil or an authenticated agent."""
+
+    __tablename__ = "host_metrics"
+    __table_args__ = (
+        Index("ix_host_metrics_agent_time", "agent_id", "recorded_at"),
+        Index("ix_host_metrics_recorded", "recorded_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    agent_id: Mapped[int] = mapped_column(
+        ForeignKey("agents.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, nullable=False, index=True
+    )
+    agent_recorded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cpu_pct: Mapped[float | None] = mapped_column(Float)
+    memory_pct: Mapped[float | None] = mapped_column(Float)
+    disk_pct: Mapped[float | None] = mapped_column(Float)
+    swap_pct: Mapped[float | None] = mapped_column(Float)
+    load_1: Mapped[float | None] = mapped_column(Float)
+    load_5: Mapped[float | None] = mapped_column(Float)
+    load_15: Mapped[float | None] = mapped_column(Float)
+    uptime_seconds: Mapped[float | None] = mapped_column(Float)
+    process_count: Mapped[int | None] = mapped_column(Integer)
+    temperature_c: Mapped[float | None] = mapped_column(Float)
+    bytes_sent_total: Mapped[int | None] = mapped_column(Integer)
+    bytes_recv_total: Mapped[int | None] = mapped_column(Integer)
+    upload_bps: Mapped[float | None] = mapped_column(Float)
+    download_bps: Mapped[float | None] = mapped_column(Float)
+    net_utilization_pct: Mapped[float | None] = mapped_column(Float)
+    latency_ms: Mapped[float | None] = mapped_column(Float)
+    packet_loss_pct: Mapped[float | None] = mapped_column(Float)
+    source: Mapped[str] = mapped_column(String(30), default="psutil", nullable=False)
+    data_origin: Mapped[str] = mapped_column(String(20), default="live", nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(20), default="ok", nullable=False)
+    details: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+    agent: Mapped[Agent] = relationship(back_populates="metrics")
+
+
+class NetworkProbe(Base):
+    """DNS or TCP connectivity observation. ICMP remains in network_measurements."""
+
+    __tablename__ = "network_probes"
+    __table_args__ = (
+        Index("ix_network_probes_protocol_time", "protocol", "recorded_at"),
+        Index("ix_network_probes_recorded", "recorded_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    protocol: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    target: Mapped[str] = mapped_column(String(255), nullable=False)
+    port: Mapped[int | None] = mapped_column(Integer)
+    success: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    latency_ms: Mapped[float | None] = mapped_column(Float)
+    packet_loss_pct: Mapped[float | None] = mapped_column(Float)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    detail: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    data_origin: Mapped[str] = mapped_column(String(20), default="live", nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, nullable=False, index=True
+    )
+
+
+class ThreatIntelCache(Base):
+    """Cached, rate-limit-aware threat-intelligence lookup for a public IP."""
+
+    __tablename__ = "threat_intel_cache"
+    __table_args__ = (Index("ix_threat_intel_expiry", "expires_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    indicator: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    provider: Mapped[str] = mapped_column(String(40), default="abuseipdb", nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="ok", nullable=False)
+    score: Mapped[float | None] = mapped_column(Float)
+    total_reports: Mapped[int | None] = mapped_column(Integer)
+    country: Mapped[str | None] = mapped_column(String(8))
+    isp: Mapped[str | None] = mapped_column(String(255))
+    usage_type: Mapped[str | None] = mapped_column(String(120))
+    raw: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

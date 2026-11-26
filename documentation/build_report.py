@@ -254,7 +254,7 @@ the installed Chrome channel. Paths are relative to the `documentation/` folder.
 - [x] FastAPI backend source
 - [x] MySQL schema, migration and database guide
 - [x] SQLite verified runtime database
-- [x] Pytest suite with 103 passing tests
+- [x] Pytest suite with 112 passing tests
 - [x] Playwright suite with 21 passing tests
 - [x] JUnit XML and coverage evidence
 - [x] Built-in test runner with persisted results
@@ -281,8 +281,8 @@ the installed Chrome channel. Paths are relative to the `documentation/` folder.
 ## E.3 Final verification statement
 
 The verified build uses SQLite and a local Windows 11 host. The final recorded
-run contains **103 passing backend tests** and **21 passing Playwright tests**,
-with **80% backend line coverage**. MySQL runtime import remains unverified
+run contains **112 passing backend tests** and **21 passing Playwright tests**,
+with **70% backend line coverage**. MySQL runtime import remains unverified
 because MySQL and Docker were unavailable on the development machine. Simulated
 records are labelled and excluded from live health. The application never
 fabricates a live measurement.

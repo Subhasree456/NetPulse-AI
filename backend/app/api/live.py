@@ -21,15 +21,19 @@ from app.core.database import SessionLocal
 from app.core.security import decode_access_token
 from app.intelligence.common import aware, iso
 from app.models import (
+    Agent,
     AnomalyEvent,
+    HostMetric,
     IssueTicket,
     NetworkMeasurement,
     Notification,
     OptimizationRecommendation,
     PredictionResult,
     SecurityEvent,
+    TrafficSample,
     User,
 )
+from app.monitoring.host_agent import effective_status
 from app.monitoring.scheduler import scheduler
 
 logger = logging.getLogger("netpulse.live")
@@ -90,6 +94,30 @@ def _snapshot() -> dict:
             .order_by(PredictionResult.risk_score.desc())
             .limit(1)
         )
+        agents = list(db.scalars(select(Agent).order_by(Agent.id.asc())).all())
+        agent_online = sum(1 for agent in agents if effective_status(agent, now) == "online")
+        local = next((agent for agent in agents if agent.kind == "local"), None)
+        host_metric = (
+            db.scalar(
+                select(HostMetric)
+                .where(HostMetric.agent_id == local.id)
+                .order_by(HostMetric.recorded_at.desc())
+                .limit(1)
+            )
+            if local
+            else None
+        )
+        traffic = db.scalar(
+            select(TrafficSample)
+            .where(TrafficSample.data_origin == "live")
+            .order_by(TrafficSample.recorded_at.desc())
+            .limit(1)
+        )
+        active_incidents = db.scalar(
+            select(func.count(IssueTicket.id)).where(
+                IssueTicket.status.in_(("Open", "In Progress"))
+            )
+        ) or 0
         return {
             "type": "snapshot",
             "generated_at": now.isoformat(),
@@ -110,7 +138,42 @@ def _snapshot() -> dict:
                 if latest
                 else None
             ),
+            "host": (
+                {
+                    "agent_id": local.id if local else None,
+                    "cpu_pct": host_metric.cpu_pct,
+                    "memory_pct": host_metric.memory_pct,
+                    "disk_pct": host_metric.disk_pct,
+                    "temperature_c": host_metric.temperature_c,
+                    "process_count": host_metric.process_count,
+                    "upload_bps": host_metric.upload_bps,
+                    "download_bps": host_metric.download_bps,
+                    "net_utilization_pct": host_metric.net_utilization_pct,
+                    "status": host_metric.status,
+                    "recorded_at": iso(host_metric.recorded_at),
+                    "age_seconds": int((now - aware(host_metric.recorded_at)).total_seconds())
+                    if host_metric.recorded_at
+                    else None,
+                }
+                if host_metric
+                else None
+            ),
+            "traffic": (
+                {
+                    "bytes_per_sec": traffic.bytes_per_sec,
+                    "utilization_pct": traffic.utilization_pct,
+                    "recorded_at": iso(traffic.recorded_at),
+                }
+                if traffic
+                else None
+            ),
+            "agents": {
+                "total": len(agents),
+                "online": agent_online,
+                "offline": len(agents) - agent_online,
+            },
             "open_tickets": open_tickets,
+            "active_incidents": active_incidents,
             "unread_notifications": unread,
             "security_open": security_open,
             "optimization_open": optimization_open,
@@ -127,7 +190,10 @@ def _snapshot() -> dict:
             ),
             "monitoring": {
                 "enabled": bool(settings.monitoring_enabled),
+                "host_enabled": bool(settings.host_monitoring_enabled),
                 "last_cycle_at": iso(scheduler.last_cycle_at),
+                "last_host_collection_at": iso(scheduler.last_host_collection_at),
+                "last_network_probe_at": iso(scheduler.last_network_probe_at),
                 "last_error": scheduler.last_error,
             },
         }

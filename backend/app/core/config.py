@@ -54,6 +54,29 @@ class Settings(BaseSettings):
     anomaly_min_samples: int = Field(default=30, ge=8)
     anomaly_contamination: float = Field(default=0.08, gt=0, lt=0.5)
 
+    # Unified monitoring: local host telemetry, authenticated remote agents and
+    # network/internet checks. Host metrics are real psutil observations.
+    host_monitoring_enabled: bool = True
+    host_metric_interval_seconds: int = Field(default=60, ge=15, le=3600)
+    host_offline_after_seconds: int = Field(default=180, ge=30, le=86400)
+    host_metric_retention_days: int = Field(default=7, ge=1, le=90)
+    cpu_threshold_pct: float = Field(default=90.0, gt=0, le=100)
+    memory_threshold_pct: float = Field(default=90.0, gt=0, le=100)
+    disk_threshold_pct: float = Field(default=90.0, gt=0, le=100)
+    agent_telemetry_rate_limit_per_minute: int = Field(default=120, ge=6, le=6000)
+
+    network_dns_target: str = "cloudflare.com"
+    network_tcp_targets: str = "1.1.1.1:443,8.8.8.8:53"
+    network_check_interval_seconds: int = Field(default=60, ge=15, le=3600)
+
+    # Optional threat-intelligence enrichment. Disabled by default; requires an
+    # API key supplied through the environment (never exposed to the browser).
+    threat_intel_enabled: bool = False
+    threat_intel_provider: str = "abuseipdb"
+    abuseipdb_api_key: str = ""
+    threat_intel_cache_minutes: int = Field(default=1440, ge=5, le=10080)
+    threat_intel_max_lookups_per_scan: int = Field(default=5, ge=1, le=20)
+
     test_runner_enabled: bool = True
     reports_dir: str = "../reports"
 

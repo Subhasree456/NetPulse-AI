@@ -59,7 +59,7 @@ manual exploratory layer.
 ```mermaid
 flowchart TB
     E2E["21 Playwright end-to-end tests<br/>real browser + real backend"]
-    BACK["103 backend tests<br/>API, services, security, ML, intelligence"]
+    BACK["112 backend tests<br/>API, services, security, ML, intelligence"]
     MAN["Manual exploratory review<br/>screenshots, visual layout, PDF inspection"]
 
     MAN --> E2E --> BACK
@@ -139,16 +139,16 @@ Playwright:
 ### 5.4.2 Final result
 
 ```text
-103 passed, 1 warning in 20.51s
+112 passed, 8 warnings in 5.20s
 ```
 
 The warning is a Starlette deprecation notice about the `httpx` test client
 adapter. It does not affect application behaviour.
 
-JUnit XML reports 103 tests, 0 failures, 0 errors, 0 skipped:
+JUnit XML reports 112 tests, 0 failures, 0 errors, 0 skipped:
 
 ```text
-testsuite name="pytest" errors="0" failures="0" skipped="0" tests="103"
+testsuite name="pytest" errors="0" failures="0" skipped="0" tests="112"
 ```
 
 ### 5.4.3 Coverage
@@ -156,7 +156,7 @@ testsuite name="pytest" errors="0" failures="0" skipped="0" tests="103"
 Coverage was measured with `pytest-cov` against the `app` package:
 
 ```text
-TOTAL   3416 statements   684 missed   80%
+TOTAL   5171 statements  1564 missed   70%
 ```
 
 | Area | Coverage | Notes |
@@ -205,7 +205,7 @@ Coverage XML: `reports/test-runs/coverage.xml`.
 |---|---:|---|
 | `auth.spec.js` | 4 | Anonymous redirect, wrong password, admin login + reload persistence, sign out |
 | `interactions.spec.js` | 12 | Theme persistence, command palette, AP detail/check, AP CRUD, current Wi-Fi prefill/unavailable states, device discovery/privacy, AI + troubleshooting, ticket lifecycle, PDF generate/download, settings save, notifications |
-| `navigation.spec.js` | 3 | All ten modules render without console errors; legacy deep links; command-palette access; 404 |
+| `navigation.spec.js` | 3 | All eleven modules render without console errors; legacy deep links; command-palette access; 404 |
 | `responsive.spec.js` | 2 | Mobile drawer navigation; no horizontal overflow |
 | **Total** | **21** | |
 
@@ -240,7 +240,7 @@ JUnit XML reports 21 tests, 0 failures.
 
 | Suite | Tests | Passed | Failed | Skipped | Duration |
 |---|---:|---:|---:|---:|---:|
-| Backend Pytest | 103 | 103 | 0 | 0 | 20.51 s (JUnit) |
+| Backend Pytest | 112 | 112 | 0 | 0 | 5.20 s (JUnit) |
 | Frontend Playwright | 21 | 21 | 0 | 0 | 62.05 s |
 | **Total** | **124** | **124** | **0** | **0** | — |
 
@@ -248,8 +248,8 @@ Additional verification:
 
 | Check | Result |
 |---|---|
-| Backend line coverage | 80% |
-| Built-in test runner | 103 tests imported from the final JUnit evidence |
+| Backend line coverage | 70% (overall, including standalone agent client) |
+| Built-in test runner | 112 tests imported from the final JUnit evidence |
 | PDF `%PDF-` signature | Verified |
 | Security headers | `nosniff`, `DENY`, `no-referrer`, restrictive Permissions-Policy, `no-store` |
 | MySQL DDL | Generated and reviewed; runtime import not executed |
@@ -308,7 +308,7 @@ check. All results were observed on the final build.
 | TC-39 | Settings | Admin update | Change thresholds/toggles; save | Persisted and reflected in system | Saved | Pass | Auto/E2E |
 | TC-40 | Settings | Invalid values | Negative latency, loss > 100 | 422 | 422 | Pass | Auto |
 | TC-41 | Settings | Non-admin read-only | Analyst opens Settings | Read-only notice; save hidden/disabled | Read-only | Pass | Auto/E2E |
-| TC-42 | UI | All modules render | Visit all ten modules | Heading and marker visible; no console errors | All rendered | Pass | E2E |
+| TC-42 | UI | All modules render | Visit all eleven modules | Heading and marker visible; no console errors | All rendered | Pass | E2E |
 | TC-43 | UI | Theme persistence | Toggle light, reload, toggle dark | Preference persists; `html.dark` correct | Correct | Pass | E2E |
 | TC-44 | UI | Command palette | `Ctrl+K`, search Reports, select, Escape | Navigates to Reports; dialog closes | Correct | Pass | E2E |
 | TC-45 | UI | Notifications | Open and close panel | Alerts panel visible; closes | Correct | Pass | E2E |
@@ -465,7 +465,7 @@ remains the main deployment risk and is repeated in the conclusion.
 
 ## 5.12 Chapter summary
 
-The final build passed **124 automated tests** (103 backend + 21 E2E) with **80%
+The final build passed **133 automated tests** (112 backend + 21 E2E) with **70%
 backend line coverage**. Testing found and fixed real UI and test-infrastructure
 defects. The evidence is stored as JUnit XML, coverage XML, a Playwright HTML
 report, PDFs and 21 screenshots. The main unverified area is the MySQL runtime

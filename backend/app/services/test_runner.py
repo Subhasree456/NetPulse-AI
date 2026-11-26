@@ -16,6 +16,7 @@ from sqlalchemy import distinct, select
 
 from app.core.config import BACKEND_DIR, PROJECT_DIR, settings
 from app.core.database import SessionLocal
+from app.intelligence.common import iso
 from app.models import AutomatedTestResult
 
 logger = logging.getLogger("netpulse.tests")
@@ -231,7 +232,7 @@ def persisted_runs(db, limit: int = 20) -> list[dict]:
             {
                 "run_id": run_id,
                 "status": status,
-                "executed_at": rows[0].executed_at.isoformat(),
+                "executed_at": iso(rows[0].executed_at),
                 "total": len(rows),
                 "duration_ms": round(sum(row.duration_ms for row in rows), 2),
                 **counts,

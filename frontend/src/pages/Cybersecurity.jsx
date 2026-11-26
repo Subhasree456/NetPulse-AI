@@ -3,8 +3,10 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
+  Database,
   Download,
   Fingerprint,
+  Globe2,
   LockKeyhole,
   Play,
   RotateCcw,
@@ -113,6 +115,7 @@ export default function Cybersecurity() {
   const [updatingId, setUpdatingId] = useState(null)
   const [filter, setFilter] = useState('All')
   const { data, loading, error, reload, refreshing, lastUpdated } = useApi('/intelligence/security', { pollMs: 60000 })
+  const threatIntel = useApi('/intelligence/threat-intel', { pollMs: 120000 })
 
   const events = data?.events || []
   const summary = data?.summary || {}
@@ -195,6 +198,60 @@ export default function Cybersecurity() {
         <StatCard label="Unapproved devices" value={summary.unapproved_devices ?? 0} hint="Observed in the local ARP cache" icon={Smartphone} accent="ochre" loading={loading} />
         <StatCard label="Failed sign-ins" value={summary.failed_logins_24h ?? 0} hint="Last 24 hours · sign-in audit" icon={LockKeyhole} accent="plum" loading={loading} />
       </div>
+
+      <section className="panel overflow-hidden">
+        <div className="flex flex-col justify-between gap-3 border-b border-app p-4 sm:flex-row sm:items-center">
+          <SectionHeader
+            icon={Globe2}
+            title="Optional threat intelligence"
+            subtitle="Server-side reputation enrichment · disabled by default · no API key is exposed to this browser"
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone={threatIntel.data?.enabled ? 'success' : 'neutral'} dot>
+              {threatIntel.data?.enabled ? 'enabled' : 'disabled'}
+            </Badge>
+            <Badge tone={threatIntel.data?.api_key_configured ? 'info' : 'neutral'}>
+              {threatIntel.data?.api_key_configured ? 'key configured' : 'no key'}
+            </Badge>
+            <Button size="sm" icon={RotateCcw} loading={threatIntel.loading} onClick={threatIntel.reload}>Refresh</Button>
+          </div>
+        </div>
+        <div className="grid gap-px bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Provider', threatIntel.data?.provider || '—'],
+            ['Cached indicators', threatIntel.data?.cached ?? 0],
+            ['Cache window', threatIntel.data?.cache_minutes != null ? `${threatIntel.data.cache_minutes} min` : '—'],
+            ['Lookups per scan', threatIntel.data?.max_lookups_per_scan ?? '—'],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-[var(--panel-solid)] px-4 py-3">
+              <p className="font-mono text-[8px] uppercase tracking-[0.14em] text-subtle">{label}</p>
+              <p className="mt-1 font-mono text-[11px] text-app">{value}</p>
+            </div>
+          ))}
+        </div>
+        {(threatIntel.data?.entries || []).length > 0 && (
+          <div className="table-wrap border-t border-app">
+            <table className="data-table min-w-[560px]">
+              <thead><tr><th>Indicator</th><th>Score</th><th>Reports</th><th>Country</th><th>Fetched</th><th>State</th></tr></thead>
+              <tbody>
+                {threatIntel.data.entries.slice(0, 6).map((entry) => (
+                  <tr key={entry.indicator}>
+                    <td className="font-mono text-[9.5px] text-app">{entry.indicator}</td>
+                    <td className="font-mono text-[9px]">{entry.score ?? '—'}</td>
+                    <td className="font-mono text-[9px]">{entry.total_reports ?? '—'}</td>
+                    <td className="font-mono text-[9px]">{entry.country || '—'}</td>
+                    <td className="whitespace-nowrap font-mono text-[9px]">{entry.fetched_at ? relativeTime(entry.fetched_at) : '—'}</td>
+                    <td><Badge tone={entry.expired ? 'warning' : 'success'}>{entry.expired ? 'expired' : 'cached'}</Badge></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="border-t border-app px-4 py-2.5">
+          <InfoNote>{threatIntel.data?.note || threatIntel.data?.usage || 'No threat-intelligence value is invented. Local evidence remains the primary source.'}</InfoNote>
+        </div>
+      </section>
 
       <div className="grid gap-4 xl:grid-cols-[1.3fr_.7fr]">
         <section className="panel overflow-hidden">

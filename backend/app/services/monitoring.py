@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.intelligence.common import iso
 from app.models import AccessPoint, NetworkMeasurement, TrafficSample
 from app.monitoring.diagnostics import perform_diagnostic, result_as_dict
 from app.services.ticketing import evaluate_access_point_ticket, evaluate_measurement_ticket
@@ -187,6 +188,6 @@ def measured_summary(measurement: NetworkMeasurement) -> dict:
         "packet_loss_pct": measurement.packet_loss_pct,
         "jitter_ms": measurement.jitter_ms,
         "target": measurement.probe_target,
-        "recorded_at": measurement.recorded_at.isoformat(),
+        "recorded_at": iso(measurement.recorded_at),
         "data_origin": measurement.data_origin,
     }

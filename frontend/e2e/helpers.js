@@ -76,7 +76,7 @@ export async function openModule(page, linkName, headingName = linkName) {
 /**
  * Open a legacy module by URL.
  *
- * The sidebar now exposes ten task-focused modules. Deep functionality such as
+ * The sidebar now exposes eleven task-focused modules. Deep functionality such as
  * the access-point inventory and issue register remains available from the
  * command palette and by direct link, so these tests keep exercising it.
  */

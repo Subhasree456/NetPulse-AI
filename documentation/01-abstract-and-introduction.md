@@ -49,8 +49,8 @@ Role-based access control, Argon2 password hashing, JWT sessions, login
 throttling, security headers and an allow-listed test runner address the main
 security concerns of a network-facing student project.
 
-The final verification run executed **103 backend Pytest tests** and **21
-Playwright end-to-end tests**, all passing, with **80% backend line coverage**.
+The final verification run executed **112 backend Pytest tests** and **21
+Playwright end-to-end tests**, all passing, with **70% backend line coverage**.
 Twenty-one screenshots were captured from the running application. A key design
 principle is that the platform **never fabricates live telemetry**: simulated
 records are explicitly labelled, excluded from live health calculations and
@@ -149,7 +149,7 @@ The project pursued the following objectives:
 
 | ID | Objective | Success criterion |
 |---|---|---|
-| O1 | Build a complete full-stack application | React frontend and FastAPI backend running together with authentication and ten modules |
+| O1 | Build a complete full-stack application | React frontend and FastAPI backend running together with authentication and eleven modules |
 | O2 | Collect real network measurements | Live latency, loss and jitter from OS ICMP probes; no fabricated live values |
 | O3 | Detect anomalies with machine learning | Isolation Forest over persisted observations with severity and human-readable explanation |
 | O4 | Provide rule-based troubleshooting | Deterministic causes and ordered diagnostic steps for offline, loss, latency and jitter conditions |
@@ -386,8 +386,8 @@ The project delivers:
 4. **Privacy-preserving device visibility** based on the OS ARP cache, hashed
    identities and masked MAC display.
 5. **An integrated incident workflow** from measurement to ticket to report.
-6. **A reproducible verification package** with 103 backend tests, 21 E2E tests,
-   80% line coverage, JUnit XML, PDFs and 21 screenshots.
+6. **A reproducible verification package** with 112 backend tests, 21 E2E tests,
+   70% line coverage, JUnit XML, PDFs and 21 screenshots.
 7. **An explicit integrity contract** that separates live observations from
    labelled simulations throughout the database, API and interface.
 

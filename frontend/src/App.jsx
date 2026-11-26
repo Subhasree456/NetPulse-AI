@@ -7,7 +7,12 @@ import DashboardLayout from './layouts/DashboardLayout'
 
 const Login = lazy(() => import('./pages/Login'))
 const Overview = lazy(() => import('./pages/Overview'))
+const LiveMonitoring = lazy(() => import('./pages/LiveMonitoring'))
 const NetworkMonitoring = lazy(() => import('./pages/NetworkMonitoring'))
+const AIIntelligence = lazy(() => import('./pages/AIIntelligence'))
+const Copilot = lazy(() => import('./pages/Copilot'))
+const NetworkTopology = lazy(() => import('./pages/NetworkTopology'))
+const Automation = lazy(() => import('./pages/Automation'))
 const PredictiveAnalytics = lazy(() => import('./pages/PredictiveAnalytics'))
 const RootCauseAnalysis = lazy(() => import('./pages/RootCauseAnalysis'))
 const Cybersecurity = lazy(() => import('./pages/Cybersecurity'))
@@ -49,7 +54,13 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Overview />} />
-            <Route path="/monitoring" element={<NetworkMonitoring />} />
+            <Route path="/monitoring" element={<LiveMonitoring />} />
+            <Route path="/intelligence" element={<AIIntelligence />} />
+            <Route path="/copilot" element={<Copilot />} />
+            <Route path="/topology" element={<NetworkTopology />} />
+            <Route path="/automation" element={<Automation />} />
+            <Route path="/incidents" element={<Issues />} />
+            <Route path="/probes" element={<NetworkMonitoring />} />
             <Route path="/predictive" element={<PredictiveAnalytics />} />
             <Route path="/root-cause" element={<RootCauseAnalysis />} />
             <Route path="/security" element={<Cybersecurity />} />

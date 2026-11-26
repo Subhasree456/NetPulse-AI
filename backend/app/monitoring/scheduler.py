@@ -14,9 +14,13 @@ from app.core.database import SessionLocal
 from app.intelligence.optimization import generate_recommendations
 from app.intelligence.prediction import generate_predictions
 from app.intelligence.security import run_security_scan
-from app.models import AccessPoint
+from app.models import AccessPoint, Agent
 from app.monitoring.devices import discover_devices
+from app.monitoring.host_agent import collect_local_metrics
+from app.monitoring.internet import run_network_probes
 from app.services.monitoring import check_access_point, run_network_check
+from app.services.notifications import notify
+from app.services.ticketing import evaluate_host_metric_ticket
 
 logger = logging.getLogger("netpulse.scheduler")
 
@@ -30,6 +34,8 @@ class MonitoringScheduler:
         self.last_device_scan_at: datetime | None = None
         self.last_ap_scan_at: datetime | None = None
         self.last_intelligence_at: datetime | None = None
+        self.last_host_collection_at: datetime | None = None
+        self.last_network_probe_at: datetime | None = None
         self.last_error: str | None = None
 
     async def start(self) -> None:
@@ -86,6 +92,27 @@ class MonitoringScheduler:
     def _run_live_check(self) -> None:
         with SessionLocal() as db:
             run_network_check(db)
+            if settings.host_monitoring_enabled:
+                try:
+                    metric = collect_local_metrics(db)
+                    agent = db.get(Agent, metric.agent_id)
+                    if agent is not None:
+                        ticket = evaluate_host_metric_ticket(db, agent, metric)
+                        if ticket is not None:
+                            notify(
+                                db,
+                                kind="ticket",
+                                severity=ticket.priority,
+                                title=f"New host incident · {ticket.ticket_number}",
+                                message=ticket.title,
+                                path="/incidents",
+                                dedupe_key=f"host-ticket:{ticket.id}",
+                            )
+                        db.commit()
+                    self.last_host_collection_at = datetime.now(timezone.utc)
+                except Exception:
+                    db.rollback()
+                    logger.exception("Local host collection failed")
             if bool(settings.auto_anomaly_detection):
                 # Rules inside the service also check the runtime Settings value.
                 detect_anomalies(db)
@@ -102,6 +129,16 @@ class MonitoringScheduler:
         check_intelligence = initial or self.last_intelligence_at is None or (
             now - self.last_intelligence_at >= timedelta(minutes=15)
         )
+        check_probes = initial or self.last_network_probe_at is None or (
+            now - self.last_network_probe_at
+            >= timedelta(seconds=settings.network_check_interval_seconds)
+        )
+        if check_probes:
+            try:
+                await asyncio.to_thread(self._run_network_probes)
+                self.last_network_probe_at = now
+            except Exception:
+                logger.exception("DNS/TCP connectivity probe cycle failed")
         if check_devices and settings.device_discovery_enabled:
             try:
                 await asyncio.to_thread(self._run_device_discovery)
@@ -135,6 +172,12 @@ class MonitoringScheduler:
             ).all()
             for ap in access_points:
                 check_access_point(db, ap)
+
+    @staticmethod
+    def _run_network_probes() -> None:
+        with SessionLocal() as db:
+            result = run_network_probes(db)
+            logger.info("Network connectivity probes: %s", result["message"])
 
     @staticmethod
     def _run_intelligence() -> None:

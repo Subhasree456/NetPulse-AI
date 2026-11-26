@@ -361,8 +361,8 @@ Postgres; local development uses SQLite.
 - notification contracts and live-feed status;
 - dashboard intelligence roll-up.
 
-The full backend suite passes 103 tests. Playwright adds 21 browser tests covering
-the ten sidebar modules, legacy command-palette routes, deep links and the new
+The full backend suite passes 112 tests. Playwright adds 21 browser tests covering
+the eleven sidebar modules, legacy command-palette routes, deep links and the new
 intelligence page markers.
 
 ---
@@ -396,14 +396,14 @@ cd ..\frontend
 npm.cmd run dev
 ```
 
-1. Sign in as an analyst or administrator and open **Real-Time Monitoring**.
+1. Sign in as an analyst or administrator and open **Live Monitoring**.
 2. Run a probe or wait for the scheduler to collect at least eight live points.
 3. Open **Predictive Analytics** and choose **Run analysis**.
 4. Run **Root Cause Analysis**, **Cybersecurity Intelligence** and **Network
    Optimization** from their pages.
 5. Review the notification bell and the Overview roll-up.
 6. Export CSVs or generate the **Intelligence brief** PDF from
-   **Reports & Analytics**.
+   **Analytics & Reports**.
 
 All timestamps are UTC. See the main README for environment variables, Vercel
 deployment and the permanent database setup.

@@ -5,11 +5,20 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator
+
+from app.intelligence.common import aware
 
 
 class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("*", when_used="json", check_fields=False)
+    def _utc_datetimes(self, value: Any) -> Any:
+        """Serialise every datetime as explicit UTC so browsers never guess."""
+        if isinstance(value, datetime):
+            return aware(value).isoformat()
+        return value
 
 
 # ----------------------------- auth ---------------------------------
@@ -233,6 +242,10 @@ class TroubleshootingRequest(BaseModel):
     access_point_id: int | None = None
 
 
+class TroubleshootingStatusUpdate(BaseModel):
+    is_active: bool
+
+
 class TroubleshootingOut(ORMModel):
     id: int
     measurement_id: int | None
@@ -355,6 +368,12 @@ class SettingsOut(BaseModel):
     auto_tickets_enabled: bool
     auto_anomaly_detection: bool
     device_discovery_enabled: bool
+    cpu_threshold_pct: float = 90
+    memory_threshold_pct: float = 90
+    disk_threshold_pct: float = 90
+    host_metric_interval_seconds: int = 60
+    host_monitoring_enabled: bool = True
+    threat_intel_enabled: bool = False
     theme_default: str = "dark"
     organization_name: str = "NetPulse AI"
 
@@ -364,6 +383,9 @@ class SettingsUpdate(BaseModel):
     packet_loss_threshold_pct: float | None = Field(default=None, ge=0, le=100)
     auto_tickets_enabled: bool | None = None
     auto_anomaly_detection: bool | None = None
+    cpu_threshold_pct: float | None = Field(default=None, gt=0, le=100)
+    memory_threshold_pct: float | None = Field(default=None, gt=0, le=100)
+    disk_threshold_pct: float | None = Field(default=None, gt=0, le=100)
     theme_default: Literal["dark", "light"] | None = None
     organization_name: str | None = Field(default=None, min_length=2, max_length=120)
 

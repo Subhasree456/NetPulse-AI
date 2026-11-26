@@ -25,6 +25,14 @@ def _serialize(values: dict) -> SettingsOut:
         auto_tickets_enabled=bool(values.get("auto_tickets_enabled", True)),
         auto_anomaly_detection=bool(values.get("auto_anomaly_detection", True)),
         device_discovery_enabled=settings.device_discovery_enabled,
+        cpu_threshold_pct=float(values.get("cpu_threshold_pct", settings.cpu_threshold_pct)),
+        memory_threshold_pct=float(
+            values.get("memory_threshold_pct", settings.memory_threshold_pct)
+        ),
+        disk_threshold_pct=float(values.get("disk_threshold_pct", settings.disk_threshold_pct)),
+        host_metric_interval_seconds=settings.host_metric_interval_seconds,
+        host_monitoring_enabled=settings.host_monitoring_enabled,
+        threat_intel_enabled=settings.threat_intel_enabled,
         theme_default=str(values.get("theme_default", "dark")),
         organization_name=str(values.get("organization_name", "NetPulse AI")),
     )

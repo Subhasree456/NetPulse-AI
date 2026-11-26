@@ -9,20 +9,33 @@ port scans or packet capture, and every finding is clearly sourced.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from statistics import median
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.intelligence.common import aware, clamp, iso
-from app.models import AppSetting, Device, LoginAttempt, SecurityEvent
+from app.intelligence.threat_intel import enrich_many, threat_intel_status
+from app.models import Agent, AppSetting, Device, HostMetric, LoginAttempt, SecurityEvent
 from app.services.notifications import notify
 
-METHOD = "Defensive local telemetry correlation v1"
+METHOD = "Defensive local telemetry correlation v2"
 DISCLAIMER = (
-    "Findings come only from authorised local observations (ARP neighbours and sign-in "
-    "audit records). No offensive scanning is performed and absence of findings is not "
-    "a guarantee that a network is secure."
+    "Findings come only from authorised local observations (ARP neighbours, sign-in "
+    "audit records, and the monitoring host's own socket table). No offensive scanning "
+    "or packet capture is performed, and absence of findings is not a guarantee that a "
+    "network is secure. Optional threat-intelligence scores are third-party data and are "
+    "shown only when a provider key is configured."
 )
+HOST_WINDOW = timedelta(hours=6)
+HOST_MIN_SAMPLES = 8
+PORT_FANOUT_THRESHOLD = 15
+PORT_FANOUT_HIGH = 30
+CONNECTION_SPIKE_MULTIPLIER = 2.5
+CONNECTION_SPIKE_MINIMUM = 60
+TRAFFIC_SPIKE_MULTIPLIER = 4.0
+TRAFFIC_SPIKE_MIN_BPS = 2_000_000
 SCAN_SETTING_KEY = "security_last_scan_at"
 FAILURE_WINDOW = timedelta(minutes=15)
 FAILURE_THRESHOLD = 5
@@ -248,6 +261,199 @@ def run_security_scan(db: Session) -> dict:
             event.status = "Resolved"
             event.resolved_at = now
 
+    # --- Host socket-table and throughput heuristics ----------------------
+    # These signals describe the monitoring host's own socket table. They are
+    # intentionally conservative and are never used to scan a remote system.
+    host_agents = list(
+        db.scalars(select(Agent).where(Agent.is_active.is_(True))).all()
+    )
+    host_windows: dict[int, list[HostMetric]] = {}
+    intel_candidates: list[str] = []
+    for agent in host_agents:
+        rows = list(
+            db.scalars(
+                select(HostMetric)
+                .where(
+                    HostMetric.agent_id == agent.id,
+                    HostMetric.data_origin == "live",
+                    HostMetric.recorded_at >= now - HOST_WINDOW,
+                )
+                .order_by(HostMetric.recorded_at.asc())
+                .limit(500)
+            ).all()
+        )
+        if rows:
+            host_windows[agent.id] = rows
+            connections = (rows[-1].details or {}).get("connections") or {}
+            ports_by_host = connections.get("distinct_ports_by_host") or {}
+            if isinstance(ports_by_host, dict):
+                for remote_ip, count in list(ports_by_host.items())[:10]:
+                    try:
+                        if int(count) >= PORT_FANOUT_THRESHOLD:
+                            intel_candidates.append(str(remote_ip))
+                    except (TypeError, ValueError):
+                        continue
+    intel_map: dict[str, dict] = {}
+    if intel_candidates and settings.threat_intel_enabled:
+        for result in enrich_many(db, intel_candidates):
+            intel_map[result["indicator"]] = result
+
+    active_host_fingerprints: set[str] = set()
+    for agent_id, rows in host_windows.items():
+        latest = rows[-1]
+        details = latest.details or {}
+        connections = details.get("connections") or {}
+        ports_by_host = connections.get("distinct_ports_by_host") or {}
+
+        if isinstance(ports_by_host, dict):
+            for remote_ip, raw_count in list(ports_by_host.items())[:10]:
+                try:
+                    count = int(raw_count)
+                except (TypeError, ValueError):
+                    continue
+                if count < PORT_FANOUT_THRESHOLD:
+                    continue
+                fingerprint = f"host_port_fanout:{agent_id}:{remote_ip}"
+                active_host_fingerprints.add(fingerprint)
+                intel = intel_map.get(str(remote_ip)) or {}
+                severity = "High" if count >= PORT_FANOUT_HIGH else "Medium"
+                values = {
+                    "event_type": "host_port_fanout",
+                    "category": "network",
+                    "severity": severity,
+                    "status": "Open",
+                    "source": "Host socket table (psutil)",
+                    "device_id": None,
+                    "access_point_id": None,
+                    "title": "High distinct-port fan-out observed",
+                    "description": (
+                        f"The monitoring host opened connections to {count} distinct "
+                        f"destination ports on {remote_ip} within the observation window. "
+                        "This may be normal client behaviour or an indicator of scanning."
+                    ),
+                    "evidence": {
+                        "agent_id": agent_id,
+                        "remote_ip": remote_ip,
+                        "distinct_ports": count,
+                        "observed_at": iso(latest.recorded_at),
+                        "scope": "host socket table",
+                        "threat_intel": intel or {"status": "disabled"},
+                    },
+                    "recommendation": (
+                        "Confirm the application and user responsible for the connections. "
+                        "If they are unexpected, isolate the host and review process and "
+                        "firewall logs."
+                    ),
+                    "confidence": 0.7 if count < PORT_FANOUT_HIGH else 0.82,
+                    "is_simulated": False,
+                }
+                row, is_new = _upsert_event(db, fingerprint=fingerprint, values=values)
+                (created if is_new else updated).append(row)
+
+        established_series: list[float] = []
+        for row in rows[:-1]:
+            value = ((row.details or {}).get("connections") or {}).get("established")
+            if value is not None:
+                established_series.append(float(value))
+        current_established = connections.get("established")
+        if (
+            len(established_series) >= HOST_MIN_SAMPLES
+            and current_established is not None
+        ):
+            baseline = median(established_series)
+            if (
+                baseline > 0
+                and current_established >= CONNECTION_SPIKE_MINIMUM
+                and current_established >= baseline * CONNECTION_SPIKE_MULTIPLIER
+            ):
+                fingerprint = f"host_connection_spike:{agent_id}"
+                active_host_fingerprints.add(fingerprint)
+                values = {
+                    "event_type": "host_connection_spike",
+                    "category": "network",
+                    "severity": "Medium",
+                    "status": "Open",
+                    "source": "Host socket table (psutil)",
+                    "device_id": None,
+                    "access_point_id": None,
+                    "title": "Connection volume spike",
+                    "description": (
+                        f"Established connections reached {int(current_established)} versus a "
+                        f"baseline median of {baseline:.0f} on this monitored host."
+                    ),
+                    "evidence": {
+                        "agent_id": agent_id,
+                        "established": int(current_established),
+                        "baseline_median": round(baseline, 1),
+                        "observed_at": iso(latest.recorded_at),
+                    },
+                    "recommendation": (
+                        "Correlate the spike with application activity. A sustained unexplained "
+                        "increase can indicate abuse or a runaway client."
+                    ),
+                    "confidence": 0.66,
+                    "is_simulated": False,
+                }
+                row, is_new = _upsert_event(db, fingerprint=fingerprint, values=values)
+                (created if is_new else updated).append(row)
+
+        traffic_series: list[float] = []
+        for row in rows[:-1]:
+            download = row.download_bps or 0
+            upload = row.upload_bps or 0
+            if row.download_bps is not None or row.upload_bps is not None:
+                traffic_series.append(float(download + upload))
+        current_traffic = float((latest.download_bps or 0) + (latest.upload_bps or 0))
+        if len(traffic_series) >= HOST_MIN_SAMPLES and current_traffic >= TRAFFIC_SPIKE_MIN_BPS:
+            baseline = median(traffic_series)
+            if baseline > 0 and current_traffic >= baseline * TRAFFIC_SPIKE_MULTIPLIER:
+                fingerprint = f"host_traffic_spike:{agent_id}"
+                active_host_fingerprints.add(fingerprint)
+                values = {
+                    "event_type": "host_traffic_spike",
+                    "category": "network",
+                    "severity": "Medium",
+                    "status": "Open",
+                    "source": "Host interface counters (psutil)",
+                    "device_id": None,
+                    "access_point_id": None,
+                    "title": "Sudden throughput spike",
+                    "description": (
+                        f"Host throughput reached {current_traffic / 1_000_000:.2f} MB/s, "
+                        f"{current_traffic / baseline:.1f}x the recent median of "
+                        f"{baseline / 1_000_000:.2f} MB/s."
+                    ),
+                    "evidence": {
+                        "agent_id": agent_id,
+                        "current_bps": round(current_traffic, 2),
+                        "baseline_bps": round(baseline, 2),
+                        "observed_at": iso(latest.recorded_at),
+                    },
+                    "recommendation": (
+                        "Confirm whether a backup, update or media transfer explains the spike. "
+                        "Investigate unexpected sustained transfer."
+                    ),
+                    "confidence": 0.6,
+                    "is_simulated": False,
+                }
+                row, is_new = _upsert_event(db, fingerprint=fingerprint, values=values)
+                (created if is_new else updated).append(row)
+
+    for event in db.scalars(
+        select(SecurityEvent).where(
+            SecurityEvent.event_type.in_(
+                ("host_port_fanout", "host_connection_spike", "host_traffic_spike")
+            ),
+            SecurityEvent.status.in_(("Open", "Acknowledged")),
+        )
+    ).all():
+        if event.fingerprint not in active_host_fingerprints:
+            event.status = "Resolved"
+            event.resolved_at = now
+            event.description = (
+                f"{event.description} The condition was not present in the latest scan window."
+            )
+
     _record_scan_timestamp(db, now)
 
     for row in created:
@@ -346,6 +552,7 @@ def security_feed(db: Session, limit: int = 100) -> dict:
         "last_scan_at": iso(last_scan),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "method": METHOD,
+        "threat_intel": threat_intel_status(db),
         "disclaimer": DISCLAIMER,
     }
 

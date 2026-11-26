@@ -159,7 +159,7 @@ test.describe('Workspace interactions', () => {
   })
 
   test('device discovery and the read-only privacy dialog', async ({ page }) => {
-    await openModule(page, 'Devices & Access Points', 'Connected devices')
+    await openModule(page, 'Devices', 'Connected devices')
     await page.getByRole('button', { name: 'Discover local devices' }).click()
     await expect(toast(page, 'Local ARP observation')).toBeVisible()
     await expect(page.getByText(/No active Nmap-style scans/)).toBeVisible()
@@ -181,9 +181,9 @@ test.describe('Workspace interactions', () => {
   })
 
   test('AI detection and rule-based diagnosis can be executed', async ({ page }) => {
-    await openModule(page, 'Anomalies & Issues', 'AI anomaly detection')
-    await page.getByRole('button', { name: 'Run detection' }).click()
-    await expect(toast(page, 'Anomaly detection complete')).toBeVisible()
+    await openModule(page, 'AI Intelligence', 'AI Intelligence')
+    await page.getByRole('button', { name: 'Detect anomalies' }).click()
+    await expect(toast(page, 'Anomaly detection')).toBeVisible()
     await expect(page.getByText('Detected anomalies')).toBeVisible()
 
     await openLegacyModule(page, '/troubleshooting', 'Smart troubleshooting')
@@ -196,8 +196,8 @@ test.describe('Workspace interactions', () => {
 
   test('ticket creation, comment and status update', async ({ page }) => {
     const title = `E2E verification ${Date.now()}`
-    await openLegacyModule(page, '/issues', 'Issue management')
-    await page.getByRole('button', { name: 'New ticket' }).click()
+    await openLegacyModule(page, '/issues', 'Incidents')
+    await page.getByRole('button', { name: 'New incident' }).click()
 
     const createDialog = page.getByRole('dialog', { name: 'Create issue ticket' })
     await createDialog.getByLabel('Title').fill(title)
@@ -225,7 +225,7 @@ test.describe('Workspace interactions', () => {
   })
 
   test('PDF reports generate and download from the real backend', async ({ page }) => {
-    await openModule(page, 'Reports & Analytics', 'Reports')
+    await openModule(page, 'Analytics & Reports', 'Reports')
     await page.getByRole('button', { name: 'Generate PDF' }).click()
     await expect(toast(page, 'generated')).toBeVisible()
     await expect(page.getByRole('button', { name: /^Download / }).first()).toBeVisible()

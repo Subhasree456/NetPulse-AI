@@ -26,7 +26,7 @@ attainment.
 
 | ID | Objective | Evidence | Status |
 |---|---|---|---|
-| O1 | Build a complete full-stack application | React SPA with login and ten modules; FastAPI API; shared authentication; responsive shell; verified in 21 Playwright tests | Achieved |
+| O1 | Build a complete full-stack application | React SPA with login and eleven modules; FastAPI API; shared authentication; responsive shell; verified in 21 Playwright tests | Achieved |
 | O2 | Collect real network measurements | OS ICMP probes persist latency, loss and jitter; failures are stored as real failures; simulation is separated by `data_origin`; 8 monitoring tests | Achieved |
 | O3 | Detect anomalies with machine learning | Isolation Forest over live observations; robust-z explanation; severity; model provenance; cold-start disclosure; 7 anomaly tests | Achieved |
 | O4 | Provide rule-based troubleshooting | Deterministic rules for outage, latency, loss, simulation and insufficient data; causes, ordered steps, related tickets and safety note; 4 tests | Achieved |
@@ -34,7 +34,7 @@ attainment.
 | O6 | Provide privacy-preserving device visibility | Read-only ARP-cache discovery, SHA-256 identity, masked MAC, approval workflow and observation history; 6 tests | Achieved |
 | O7 | Automate incident management | Deduplicated automatic tickets, manual tickets, priorities, three workflow statuses, comments and statistics; 5 tests | Achieved |
 | O8 | Generate analytical reports | Eight PDF types generated from stored data, report library, secure download and path-traversal protection; 7 tests | Achieved |
-| O9 | Verify the implementation | 103 Pytest tests, 21 Playwright tests, 80% backend line coverage, JUnit XML, HTML report and built-in runner evidence | Achieved |
+| O9 | Verify the implementation | 112 Pytest tests, 21 Playwright tests, 70% backend line coverage, JUnit XML, HTML report and built-in runner evidence | Achieved |
 | O10 | Document the project professionally | Nine chapters, architecture and UML/DFD models, generated data dictionary, test inventory, 21 screenshots and consolidated report | Achieved |
 
 ### 7.2.1 Non-functional outcomes
@@ -91,7 +91,7 @@ product decisions that reduce the risk of a demonstration causing real damage.
 
 ### 7.3.5 Reproducible verification
 
-The project ships its evidence: 103 backend tests, 21 browser tests, JUnit XML,
+The project ships its evidence: 112 backend tests, 21 browser tests, JUnit XML,
 coverage XML, a Playwright HTML report, a built-in runner, a generated test
 inventory and 21 screenshots. A reviewer can rerun the commands rather than
 trust a claim in a slide.
@@ -283,8 +283,8 @@ The following principles should survive future development:
 NetPulse AI met its ten objectives. It delivers a real, working monitoring and
 diagnostics platform with a coherent data model, a complete operational
 workflow, an explainable machine-learning component and a substantial automated
-verification trail. The final build passed 124 automated tests, produced 80%
-backend line coverage, generated eight report types, and documented its design
+verification trail. The final build passed 133 automated tests, produced 70%
+backend line coverage, generated nine report types, and documented its design
 with architecture, database, UML, DFD, test and user-manual chapters.
 
 The project also demonstrates the value of constraints. Refusing to fabricate

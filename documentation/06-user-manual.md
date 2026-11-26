@@ -349,15 +349,16 @@ lifetime is 480 minutes (8 hours) and can be changed with
 
 | Group | Modules |
 |---|---|
-| Command | Overview, Real-Time Monitoring |
-| Intelligence | Predictive Analytics, Root Cause Analysis, Cybersecurity Intelligence |
-| Operations | Network Optimization, Devices & Access Points, Anomalies & Issues |
-| System | Reports & Analytics, Settings |
+| Command | Overview, Live Monitoring |
+| Intelligence | AI Intelligence, AI Network Copilot, Cybersecurity |
+| Network | Devices, Network Topology, Incidents |
+| Operations | Automation, Analytics & Reports |
+| System | Settings |
 
-The primary sidebar contains exactly these ten links. Legacy deep links such as
-`/access-points`, `/troubleshooting`, `/issues` and `/testing` remain available
-through the command palette and direct navigation, so existing bookmarks do not
-break.
+The primary sidebar contains exactly these eleven links. Legacy deep links such as
+`/probes`, `/predictive`, `/root-cause`, `/optimization`, `/access-points`,
+`/troubleshooting`, `/issues` and `/testing` remain available through the
+command palette and direct navigation, so existing bookmarks do not break.
 
 On screens narrower than 1024 px, the sidebar becomes a slide-in drawer. Open it
 with the menu button in the header. The current page is shown in the header
@@ -980,8 +981,8 @@ cd ..\frontend
 npm.cmd run test:e2e
 ```
 
-The latest verified results are 103 backend tests and 21 Playwright tests, all
-passing, with 80% backend line coverage.
+The latest verified results are 112 backend tests and 21 Playwright tests, all
+passing, with 70% backend line coverage.
 
 ### 6.9.8 Add a team member
 

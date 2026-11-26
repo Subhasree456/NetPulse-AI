@@ -3,18 +3,19 @@
 **Autonomous Network Intelligence & Cybersecurity Platform**
 
 A complete B.Sc. final-year project that combines real local network probing,
-machine-learning anomaly detection, explainable failure-risk prediction,
-root-cause analysis, defensive security intelligence, optimisation advisory,
-device governance, automated incident ticketing, PDF/CSV reporting, live
-WebSocket updates and a full automated test suite in one responsive web
+psutil host telemetry, authenticated remote agents, machine-learning anomaly
+detection, explainable failure-risk prediction, root-cause analysis, defensive
+security intelligence, optional threat-intelligence enrichment, optimisation
+advisory, device governance, automated incident ticketing, PDF/CSV reporting,
+live WebSocket updates and a full automated test suite in one responsive web
 application.
 
 > **Live-data integrity:** NetPulse AI never invents live measurements or
-> findings. Every probe result is a real operating-system network observation.
-> Records created for demonstrations are explicitly labelled `simulation` and
-> excluded from the live health index. Intelligence engines return an explicit
-> `insufficient_data` state instead of fabricating a prediction, threat or
-> optimisation gain.
+> findings. Every probe result is a real operating-system network observation,
+> and every host metric is a real psutil reading. Records created for
+> demonstrations are explicitly labelled `simulation` and excluded from the live
+> health index. Intelligence engines return an explicit `insufficient_data`
+> state instead of fabricating a prediction, threat or optimisation gain.
 
 ---
 
@@ -25,20 +26,27 @@ machine and turns raw observations into actionable insight:
 
 1. **Observe** — ICMP latency, packet loss and jitter are measured against a
    configurable target; the local ARP cache supplies read-only device visibility
-   and the host interface supplies traffic counters.
+   and the host interface supplies traffic counters. psutil adds CPU, memory,
+   disk, process, temperature (where the OS exposes it) and interface
+   throughput from the monitoring host, while authenticated remote agents push
+   the same contract from other machines.
 2. **Detect** — an Isolation Forest model scores observations and explains each
-   outlier using robust z-scores.
+   outlier using robust z-scores; rolling z-score checks cover host resources.
 3. **Predict** — a transparent weighted model estimates 24-hour failure risk per
-   scope and reports an explicit `insufficient_data` state when the window is too
-   small.
+   scope and per host, and reports an explicit `insufficient_data` state when
+   the window is too small.
 4. **Investigate** — persisted evidence is converted into a probable cause,
-   ranked hypotheses, confidence and safe next steps.
-5. **Secure** — a defensive scanner reviews unapproved devices, failed sign-ins
-   and access-point inventory, without port scans or offensive actions.
+   ranked hypotheses, confidence and safe next steps, and the AI Network
+   Copilot answers questions from the same stored rows.
+5. **Secure** — a defensive scanner reviews unapproved devices, failed sign-ins,
+   access-point inventory and local socket observations, without port scans or
+   offensive actions. Optional AbuseIPDB enrichment is server-side, cached and
+   disabled by default.
 6. **Optimise** — measured loss, latency, jitter and availability are compared
    with thresholds to produce advisory recommendations with no invented gains.
 7. **Act** — incidents become deduplicated tickets, notifications and audit
-   entries with priorities, statuses and comments.
+   entries with priorities, statuses and comments; runbooks and optimisation
+   actions are operator-reviewed only.
 8. **Prove** — Pytest and Playwright suites verify the platform; JUnit results,
    PDF reports and CSV exports are available inside the application.
 
@@ -49,12 +57,12 @@ account for its core AI, and runs locally on Windows 11.
 |---|---|
 | Frontend | React 18, Vite 6, Tailwind CSS, Recharts, Axios, React Router |
 | Backend | FastAPI, SQLAlchemy 2, Pydantic 2, JWT, Argon2 |
-| AI | scikit-learn Isolation Forest, robust-z explanations and a transparent local risk model |
-| Live transport | WebSocket push with automatic REST polling fallback |
+| AI | scikit-learn Isolation Forest, robust-z explanations, a transparent local risk model and a deterministic data-grounded Copilot |
+| Live transport | WebSocket push with automatic REST polling fallback and stale-data indicators |
 | Database | SQLite (verified local default) · MySQL 8 (deployment schema included) · Prisma Postgres (production) |
-| Testing | 103 Pytest tests · 21 Playwright E2E tests |
+| Testing | 112 Pytest tests · 21 Playwright E2E tests |
 | Reports | 9 PDF report types and 4 intelligence CSV exports |
-| Modules | 10 sidebar modules, legacy deep links, command palette and responsive shell |
+| Modules | 11 sidebar modules, legacy deep links, command palette and responsive shell |
 
 ---
 
@@ -93,23 +101,25 @@ throughout the project report. The intelligence layer is documented in
 | Module | What it provides |
 |---|---|
 | **Authentication** | JWT login, Argon2 password hashing, session restore, login throttling and attempt auditing, role-based access (admin / analyst / viewer). |
-| **Overview** | Live health index, latency and packet-loss trends, AP state, device summary, intelligence roll-up, live-transport status, recent AI findings and alerts. |
-| **Real-Time Monitoring** | Real OS probes with latency, jitter, loss and online state; scheduler status; live WebSocket updates with polling fallback; recent history and network identity information. |
-| **Predictive Analytics** | Transparent 24-hour failure-risk estimates per scope, weighted feature breakdown, confidence, telemetry availability and explicit insufficient-data states. |
-| **Root Cause Analysis** | Investigation queue built from measured evidence: probable cause, ranked hypotheses, confidence, safe diagnostic actions and acknowledge/resolve/reopen workflow. |
-| **Cybersecurity Intelligence** | Defensive findings for unapproved devices, failed sign-in bursts and AP inventory; posture score, evidence, recommended response and analyst workflow. No offensive scanning. |
-| **Network Optimization** | Advisory recommendations from measured loss, latency, jitter and availability thresholds, with evidence, confidence and no fabricated expected gains. |
-| **Devices & Access Points** | Read-only ARP-cache discovery with SHA-256 hashed identity and approval workflow, plus authorized AP CRUD, availability checks and configuration history from the legacy inventory link. |
-| **Anomalies & Issues** | Isolation Forest anomaly register with robust-z explanations and the issue register with tickets, priorities, comments and workflow. |
-| **Reports & Analytics** | Nine PDF report types plus four intelligence CSV exports, generated from real stored data, with a report library and authenticated download. |
-| **Settings** | Runtime latency/loss thresholds, automation toggles, theme and organisation settings, team administration and system diagnostics. |
+| **Overview** | Unified operational picture: total/online/offline devices, network health, active incidents, security findings, in/out traffic, bandwidth utilisation, mean latency, CPU and memory, throughput/health/availability charts, AI insights, critical alerts, security timeline, device distribution and freshness/transport status. |
+| **Live Monitoring** | Real psutil host telemetry (CPU, memory, swap, disk, temperature where exposed, uptime, process count, interface throughput), resource gauges, interface/disk inventory, process and socket observations, ICMP latency history and DNS/TCP connectivity checks. |
+| **Devices** | Read-only ARP-cache discovery with SHA-256 hashed identity, masked MAC addresses, approval workflow and per-device activity. |
+| **AI Intelligence** | Per-host risk scores, host and network anomalies, failure predictions, root-cause investigations, recommendations, method/confidence/limitations and explicit insufficient-data states. |
+| **AI Network Copilot** | Deterministic, database-grounded question answering with cited sources, confidence and structured evidence; no external model is called unless an operator configures one. |
+| **Cybersecurity** | Defensive findings for unapproved devices, failed sign-in bursts, access-point inventory and socket observations; posture score, acknowledge/resolve workflow and an optional server-side AbuseIPDB panel. No offensive scanning. |
+| **Network Topology** | Interactive SVG graph correlated from subnet membership, OS routing, ARP neighbours, access-point inventory and agent registration. Every edge states whether it is observed or inferred; LLDP/SNMP are not used. |
+| **Incidents** | Deduplicated automatic tickets plus manual incidents, priorities, statuses, comments and the legacy issue register. |
+| **Automation** | Evidence-backed troubleshooting runbooks, advisory optimisation actions and the allow-listed repository test runner. Nothing is pushed to network devices. |
+| **Analytics & Reports** | Nine PDF report types and four intelligence CSV exports generated from real stored data, with a report library and authenticated download. |
+| **Settings** | Runtime latency/loss and host CPU/memory/disk thresholds, monitoring toggles, remote-agent management, team administration, theme and system diagnostics. |
 
-The sidebar contains exactly these ten labels: **Overview**, **Real-Time
-Monitoring**, **Predictive Analytics**, **Root Cause Analysis**, **Cybersecurity
-Intelligence**, **Network Optimization**, **Devices & Access Points**,
-**Anomalies & Issues**, **Reports & Analytics** and **Settings**. The legacy
-routes `/access-points`, `/troubleshooting`, `/issues` and `/testing` remain
-reachable through the command palette and direct links.
+The primary sidebar contains exactly these eleven labels: **Overview**, **Live
+Monitoring**, **AI Intelligence**, **AI Network Copilot**, **Cybersecurity**,
+**Devices**, **Network Topology**, **Incidents**, **Automation**, **Analytics &
+Reports** and **Settings**. The earlier specialist pages remain reachable under
+**Extended modules** and through the command palette: `/probes` (network probe
+history), `/predictive`, `/root-cause`, `/optimization`, `/access-points`,
+`/troubleshooting`, `/issues` and `/testing`.
 
 The shell also includes a command palette (`Ctrl+K`), notification centre,
 theme switch, live-transport pill, user menu and a responsive mobile drawer.
@@ -121,9 +131,9 @@ theme switch, live-transport pill, user menu and a responsive mobile drawer.
 ```text
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ Browser (React 18 + Vite + Tailwind + Recharts)                          │
-│  Login · Overview · Monitoring · Predictive · RCA · Security             │
-│  Optimisation · Devices & APs · Anomalies & Issues · Reports · Settings   │
-│  WebSocket live feed with REST polling fallback                          │
+│  Overview · Live Monitoring · Devices · AI Intelligence · Copilot        │
+│  Cybersecurity · Topology · Incidents · Automation · Reports · Settings   │
+│  WebSocket live feed with REST polling fallback and stale-data states    │
 └───────────────────────────────┬──────────────────────────────────────────┘
                                 │ HTTPS/JSON · JWT Bearer · WSS
 ┌───────────────────────────────▼──────────────────────────────────────────┐
@@ -131,11 +141,18 @@ theme switch, live-transport pill, user menu and a responsive mobile drawer.
 │  Routers → Services → SQLAlchemy models → SQLite / MySQL / Postgres       │
 │                                                                          │
 │  Monitoring scheduler ──► OS ICMP probe ──► network_measurements         │
+│  psutil host collector ─► host_metrics ──► host thresholds / tickets      │
+│  Agent API ─────────────► agents ──► authenticated telemetry/heartbeat    │
+│  DNS/TCP probes ────────► network_probes ──► notifications               │
 │  Isolation Forest ──────► anomaly_events ──► ticket automation           │
 │  Risk model ────────────► prediction_results ──► notifications           │
+│  Host risk + z-scores ──► /intelligence/host · /anomalies                │
 │  RCA rules ─────────────► root_cause_investigations ──► notifications    │
 │  Defensive scanner ─────► security_events ──► notifications              │
+│  AbuseIPDB (optional) ──► threat_intel_cache (server-side only)          │
 │  Optimisation engine ───► optimization_recommendations ──► notifications │
+│  Copilot responder ─────► read-only queries over stored rows             │
+│  Topology builder ──────► observed + inferred graph                      │
 │  Live hub ──────────────► WebSocket broadcast / REST snapshot            │
 │  Rule engine ───────────► troubleshooting_recommendations                │
 │  ARP adapter ───────────► devices + device_activity                      │
@@ -145,7 +162,7 @@ theme switch, live-transport pill, user menu and a responsive mobile drawer.
                                 │
 ┌───────────────────────────────▼──────────────────────────────────────────┐
 │ SQLite (local) · MySQL 8 (deployment) · Prisma Postgres (production)     │
-│ 20 domain tables + schema_migrations                                     │
+│ 24 domain tables + schema_migrations                                     │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -161,8 +178,10 @@ and [`documentation/04-uml-and-process-models.md`](documentation/04-uml-and-proc
 
 - **Python 3.11+** — <https://www.python.org/downloads/> (enable *Add python.exe to PATH*)
 - **Node.js 18 LTS+** — <https://nodejs.org/>
-- **Google Chrome** — required by the Playwright suite on this machine because
-  the bundled headless shell is blocked by an Application Control policy
+- **A Chromium browser for Playwright** — the suite uses the installed Chrome
+  channel by default. If Chrome is absent but Microsoft Edge is installed, run
+  the suite with `PLAYWRIGHT_CHANNEL=msedge`. The bundled headless shell may be
+  blocked by an Application Control policy on managed machines.
 - Optional: **MySQL 8** and **Docker Desktop** for the MySQL deployment path
 
 ### One-command setup
@@ -312,6 +331,19 @@ Backend configuration lives in `backend\.env` (ignored by Git). Start from
 | `MONITOR_PACKET_COUNT` / `MONITOR_TIMEOUT_MS` | Probe shape and timeout | `4` / `1500` |
 | `MONITORING_INTERVAL_SECONDS` | Scheduler interval | `60` |
 | `MONITORING_ENABLED` / `MONITOR_ON_STARTUP` | Scheduler switches | `true` |
+| `HOST_MONITORING_ENABLED` | psutil host collection switch | `true` |
+| `HOST_METRIC_INTERVAL_SECONDS` | Seconds between host samples | `60` |
+| `HOST_OFFLINE_AFTER_SECONDS` | Agent silence before it is shown offline | `180` |
+| `HOST_METRIC_RETENTION_DAYS` | Host-metric retention window | `7` |
+| `CPU_THRESHOLD_PCT` / `MEMORY_THRESHOLD_PCT` / `DISK_THRESHOLD_PCT` | Host incident thresholds | `90` |
+| `AGENT_TELEMETRY_RATE_LIMIT_PER_MINUTE` | Per-agent telemetry budget | `120` |
+| `NETWORK_DNS_TARGET` | DNS connectivity target | `cloudflare.com` |
+| `NETWORK_TCP_TARGETS` | Comma-separated host:port TCP checks | `1.1.1.1:443,8.8.8.8:53` |
+| `NETWORK_CHECK_INTERVAL_SECONDS` | DNS/TCP probe interval | `60` |
+| `THREAT_INTEL_ENABLED` | Enable optional reputation lookups | `false` |
+| `THREAT_INTEL_PROVIDER` | Reputation provider | `abuseipdb` |
+| `ABUSEIPDB_API_KEY` | Server-side API key (never sent to the browser) | empty |
+| `THREAT_INTEL_CACHE_MINUTES` / `THREAT_INTEL_MAX_LOOKUPS_PER_SCAN` | Cache and lookup budget | `1440` / `5` |
 | `DEVICE_DISCOVERY_ENABLED` | ARP-cache discovery switch | `true` |
 | `LATENCY_THRESHOLD_MS` / `PACKET_LOSS_THRESHOLD_PCT` | Alert thresholds | `150` / `5` |
 | `AUTO_TICKETS_ENABLED` | Create tickets from incidents | `true` |
@@ -325,6 +357,81 @@ Thresholds and automation toggles can also be changed at runtime from
 
 ---
 
+## Unified telemetry: host, agents and network probes
+
+### Local host telemetry
+
+The backend's own machine is monitored with [psutil](https://github.com/giampaolo/psutil)
+on every scheduler cycle and on demand from **Live Monitoring → Collect now**:
+
+- CPU, memory, swap and most-used disk utilisation;
+- temperature and battery fields when the operating system exposes them (shown
+  as *not measured* otherwise, never estimated);
+- uptime, process count, load averages, per-interface counters and link speed;
+- interface addresses, mounted disks, top processes and socket observations.
+
+Each row stores `source="psutil"`, `data_origin="live"`, `recorded_at` and a
+collection status. Host thresholds create deduplicated incidents through the
+same ticket pipeline as network probes. Retention is controlled by
+`HOST_METRIC_RETENTION_DAYS`.
+
+### Remote agents
+
+Remote machines can push the same contract through authenticated HTTP:
+
+1. Sign in as an administrator and open **Settings → Monitoring agents**.
+2. Choose **Register agent**, name it, and copy the one-time token.
+3. On the remote host, install `psutil` and run:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m app.agent_client `
+  --api-url http://<netpulse-host>:8000 `
+  --token <one-time-token> `
+  --interval 60
+```
+
+The client sends telemetry every `--interval` seconds, sends a heartbeat,
+reconnects with exponential backoff and verifies TLS by default. Useful flags
+and environment variables:
+
+| Option | Environment variable | Purpose |
+|---|---|---|
+| `--api-url` | `NETPULSE_API_URL` | Backend base URL |
+| `--token` | `NETPULSE_AGENT_TOKEN` | Agent credential (shown once at registration) |
+| `--interval` | `NETPULSE_AGENT_INTERVAL` | Seconds between samples (minimum 15) |
+| `--ping-target` | `NETPULSE_PING_TARGET` | Optional ICMP latency target |
+| `--once` | — | Send one sample and exit (useful for cron/Task Scheduler) |
+| — | `NETPULSE_VERIFY_TLS=0` | Disable certificate verification for a self-signed lab server only |
+
+Agent tokens are hashed at rest; only a short prefix is displayed after
+registration. Administrators can rotate, disable or delete an agent from
+Settings. An agent is shown **offline** after `HOST_OFFLINE_AFTER_SECONDS`
+without a heartbeat, and its last sample is labelled with its age rather than
+replaced with a fabricated value. Registration never opens an inbound port: the
+agent only makes outbound calls.
+
+### Network and internet checks
+
+The scheduler runs real ICMP latency/loss probes against `MONITOR_TARGET` and
+DNS/TCP connectivity checks against `NETWORK_DNS_TARGET` and
+`NETWORK_TCP_TARGETS`. Results are stored in `network_measurements` and
+`network_probes`, drive the availability chart, and raise connectivity incidents
+when thresholds are crossed. The **Live Monitoring** page exposes manual
+**Run probes** and **Collect now** actions for operators with the analyst role.
+
+### Optional threat intelligence
+
+Reputation enrichment is **disabled by default** and never exposed to the
+browser. To enable it, set `THREAT_INTEL_ENABLED=true` and provide
+`ABUSEIPDB_API_KEY` in `backend\.env`. Lookups run server-side only, are cached
+for `THREAT_INTEL_CACHE_MINUTES`, and are capped per scan by
+`THREAT_INTEL_MAX_LOOKUPS_PER_SCAN`. When the key is missing the panel reports
+`NO KEY` and the defensive scan continues with local evidence only — no score
+is invented.
+
+---
+
 ## Testing
 
 ### Backend — Pytest
@@ -334,7 +441,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-- **103 tests passed** in the final verification run.
+- **112 tests passed** in the final verification run.
 - Tests use a throw-away SQLite database, disable the scheduler, block live
   probes and prevent recursive test-runner execution.
 - JUnit output: `reports\test-runs\backend-junit.xml`.
@@ -344,7 +451,11 @@ AP CRUD/history, Wi-Fi association parsing, Isolation Forest behaviour, failure
 risk prediction, root-cause investigations, defensive security scans,
 optimisation advice, CSV exports, notifications, live-feed contracts, tickets
 and deduplication, PDF reports, ARP parsing and device governance,
-troubleshooting rules, settings, security headers and JUnit parsing.
+troubleshooting rules, settings, security headers and JUnit parsing. The unified
+monitoring suite adds host telemetry aggregation, agent registration and
+authentication, agent telemetry/heartbeat contracts, token rotation, DNS/TCP
+probe recording, dashboard host fields, topology honesty flags, host
+intelligence and Copilot grounding.
 
 ### Frontend — Playwright
 
@@ -354,9 +465,10 @@ npm.cmd run test:e2e
 ```
 
 - **21 tests passed** in the final verification run.
-- Uses the installed Chrome channel (`PLAYWRIGHT_CHANNEL=chrome`) and starts or
-  reuses both servers.
-- Covers login/redirect/logout, incorrect-password handling, all ten sidebar
+- Uses the installed browser channel. Chrome is the default
+  (`PLAYWRIGHT_CHANNEL=chrome`); use `PLAYWRIGHT_CHANNEL=msedge` when Chrome is
+  not installed but Microsoft Edge is. Playwright starts or reuses both servers.
+- Covers login/redirect/logout, incorrect-password handling, all eleven sidebar
   modules, deep links, legacy command-palette routes, console errors, AP
   detail/check/CRUD, current Wi-Fi prefill and unavailable-cloud messaging,
   device discovery, AI detection, troubleshooting, ticket lifecycle, PDF
@@ -420,27 +532,33 @@ NetPulse-AI/
 ├── backend/
 │   ├── app/
 │   │   ├── ai/              Isolation Forest and synthetic cold-start baseline
-│   │   ├── intelligence/    Prediction, RCA, security, optimisation and roll-up
+│   │   ├── intelligence/    Prediction, RCA, security, optimisation, host risk,
+│   │   │                    threat intelligence, Copilot and roll-up
 │   │   ├── api/             FastAPI routers (auth, monitoring, APs, devices, AI,
-│   │   │                    intelligence, notifications, live, troubleshooting,
-│   │   │                    tickets, tests, reports, settings)
+│   │   │                    host, agents, topology, Copilot, intelligence,
+│   │   │                    notifications, live, troubleshooting, tickets, tests,
+│   │   │                    reports, settings)
 │   │   ├── core/            Configuration, database, JWT/Argon2, logging
-│   │   ├── models/          SQLAlchemy domain model (20 tables)
-│   │   ├── monitoring/      OS probes, scheduler, ARP/Wi-Fi adapters, diagnostics
+│   │   ├── models/          SQLAlchemy domain model (24 tables)
+│   │   ├── monitoring/      OS probes, psutil host collector, scheduler,
+│   │   │                    DNS/TCP checks, ARP/Wi-Fi adapters, diagnostics
 │   │   ├── schemas/         Pydantic request/response schemas
-│   │   ├── services/        Monitoring, intelligence notifications, reports, seeding
+│   │   ├── services/        Monitoring, agent auth, intelligence notifications,
+│   │   │                    reports, seeding
 │   │   ├── troubleshooting/ Deterministic rule engine
+│   │   ├── agent_client.py  Standalone remote-agent telemetry client
 │   │   └── main.py          Application entrypoint and static frontend serving
-│   ├── tests/               103 Pytest tests with isolated fixtures
+│   ├── tests/               112 Pytest tests with isolated fixtures
 │   ├── .env.example
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── components/      Shared UI, charts, intelligence widgets, notifications
+│   │   ├── components/      Shared UI, charts, intelligence widgets, notifications,
+│   │   │                    remote-agent manager
 │   │   ├── context/         Auth, live feed, theme and toast providers
 │   │   ├── hooks/           API polling hook
-│   │   ├── layouts/         Responsive shell, 10-module sidebar and command palette
-│   │   ├── pages/           Ten sidebar modules, legacy deep links, login and 404
+│   │   ├── layouts/         Responsive shell, 11-module sidebar and command palette
+│   │   ├── pages/           Eleven sidebar modules, legacy deep links, login and 404
 │   │   └── services/        Axios client, token handling, PDF/CSV download
 │   ├── e2e/                 21 Playwright tests and credential helper
 │   ├── scripts/             Documentation screenshot capture
@@ -463,9 +581,13 @@ NetPulse-AI/
 
 ## Data integrity, privacy and safety
 
-- **No fabricated telemetry.** Live metrics come from real OS ICMP probes. If a
-  probe fails, the row is marked offline with the real error; values are not
-  filled in.
+- **No fabricated telemetry.** Live metrics come from real OS ICMP probes and
+  real psutil counters. If a probe fails, the row is marked offline with the real
+  error; values are not filled in. If an agent stops reporting, its last sample
+  is shown with its age and marked stale.
+- **Agent credentials.** Remote-agent tokens are random, hashed at rest, shown
+  once at registration and rotatable by an administrator. Telemetry is rate
+  limited and requires an authenticated agent identity.
 - **Simulation labels.** Demo APs use RFC 5737 documentation addresses and
   `data_origin = "simulation"`. The UI shows a simulation notice and the backend
   excludes them from live health calculations.
@@ -498,7 +620,14 @@ NetPulse-AI/
   no expected improvement percentage is invented.
 - **Explainability.** Every intelligence item exposes its method, evidence,
   confidence and a disclaimer. The core scoring runs locally; no external LLM is
-  required.
+  required. The AI Network Copilot answers only from stored rows and cites its
+  sources.
+- **No browser secrets.** The optional reputation provider key is read from the
+  backend environment, used server-side and never returned to the browser.
+- **Honest topology.** Graph edges are labelled `inferred` unless directly
+  observed; the page states that LLDP, SNMP and packet capture are not used.
+- **Defensive security only.** No offensive scanning, exploitation or automatic
+  blocking is performed, and findings are limited to authorised local evidence.
 
 ---
 
@@ -511,7 +640,7 @@ NetPulse-AI/
 | [02 — System architecture](documentation/02-system-architecture.md) | Layered architecture, components, data flow, deployment |
 | [03 — Database design](documentation/03-database-design.md) | ER diagram, data dictionary, normalization, indexes |
 | [04 — UML & process models](documentation/04-uml-and-process-models.md) | Use case, class, sequence, activity, DFD, state models |
-| [05 — Testing & results](documentation/05-testing-and-results.md) | Strategy, 103+21 test evidence, sample test cases, screenshots |
+| [05 — Testing & results](documentation/05-testing-and-results.md) | Strategy, 112+21 test evidence, sample test cases, screenshots |
 | [06 — User manual](documentation/06-user-manual.md) | Installation, module walkthrough, troubleshooting |
 | [07 — Conclusion & future work](documentation/07-conclusion-and-future-work.md) | Achievements, limitations, roadmap |
 | [08 — References](documentation/08-references.md) | Standards, libraries and research references |

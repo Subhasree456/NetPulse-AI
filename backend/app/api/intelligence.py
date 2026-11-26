@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import AnalystUser, CurrentUser, DbSession
+from app.intelligence.host_ai import host_analysis
 from app.intelligence.optimization import (
     generate_recommendations,
     recommendation_feed,
@@ -20,6 +21,7 @@ from app.intelligence.prediction import generate_predictions, prediction_feed
 from app.intelligence.rca import investigation_feed, resolve_investigation, run_investigation
 from app.intelligence.rollup import intelligence_overview
 from app.intelligence.security import resolve_security_event, run_security_scan, security_feed
+from app.intelligence.threat_intel import threat_intel_status
 from app.schemas.intelligence import RCARequest, StatusUpdate
 
 router = APIRouter(prefix="/intelligence", tags=["Autonomous Intelligence"])
@@ -126,6 +128,18 @@ def update_recommendation(
 def intelligence_summary(db: DbSession, _: CurrentUser) -> dict:
     """Compact roll-up used by the overview dashboard."""
     return intelligence_overview(db)
+
+
+@router.get("/host")
+def host_intelligence(db: DbSession, _: CurrentUser) -> dict:
+    """Per-host predictive risk, anomalies and recommendations from live metrics."""
+    return host_analysis(db)
+
+
+@router.get("/threat-intel")
+def threat_intel(db: DbSession, _: CurrentUser) -> dict:
+    """Optional provider status and cached indicators (no API key is exposed)."""
+    return threat_intel_status(db)
 
 
 def _cell(value):

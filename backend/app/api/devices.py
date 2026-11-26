@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 
 from app.api.deps import AdminUser, AnalystUser, CurrentUser, DbSession
+from app.intelligence.common import iso
 from app.models import Device, DeviceActivity
 from app.monitoring.devices import discover_devices
 from app.schemas.schemas import DeviceDiscoveryResult, DeviceOut, DeviceUpdate
@@ -121,7 +122,7 @@ def device_activity(device_id: int, db: DbSession, _: CurrentUser) -> dict:
     return {
         "device": _enrich(device),
         "activities": [
-            {"id": row.id, "ip_address": row.ip_address, "seen_at": row.seen_at.isoformat()}
+            {"id": row.id, "ip_address": row.ip_address, "seen_at": iso(row.seen_at)}
             for row in activities
         ],
         "generated_at": datetime.now(timezone.utc).isoformat(),

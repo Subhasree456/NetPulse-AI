@@ -15,7 +15,7 @@ printed or submitted separately. A consolidated report is also provided.
 | 2 | [02-system-architecture.md](02-system-architecture.md) | Architecture, components, data flow, deployment, design decisions |
 | 3 | [03-database-design.md](03-database-design.md) | ER model, data dictionary, normalization, indexes, integrity, sample queries |
 | 4 | [04-uml-and-process-models.md](04-uml-and-process-models.md) | Use case, class, sequence, activity, state, DFD and deployment models |
-| 5 | [05-testing-and-results.md](05-testing-and-results.md) | Strategy, 103 backend + 21 E2E results, 80% coverage, test cases, defects |
+| 5 | [05-testing-and-results.md](05-testing-and-results.md) | Strategy, 112 backend + 21 E2E results, 70% coverage, test cases, defects |
 | 6 | [06-user-manual.md](06-user-manual.md) | Installation, module walkthrough, roles, workflows, error handling |
 | 7 | [07-conclusion-and-future-work.md](07-conclusion-and-future-work.md) | Achievements, limitations, future roadmap |
 | 8 | [08-references.md](08-references.md) | Standards, research and library references |
@@ -131,7 +131,7 @@ system status and team access management.
 
 ![Command palette](screenshots/14-command-palette.png)
 
-`Ctrl+K` navigation across all ten modules with search.
+`Ctrl+K` navigation across all eleven modules with search.
 
 ### 15 — Light theme
 
@@ -183,10 +183,10 @@ counts and no fabricated savings.
 
 | Evidence | Result | Location |
 |---|---|---|
-| Backend Pytest suite | **103 passed, 0 failed** | `reports/test-runs/backend-junit.xml` |
-| Backend line coverage | **80%** (3416 statements, 684 missed) | `reports/test-runs/coverage.xml` |
+| Backend Pytest suite | **112 passed, 0 failed** | `reports/test-runs/backend-junit.xml` |
+| Backend line coverage | **70%** (5171 statements, 1564 missed) | `reports/test-runs/coverage.xml` |
 | Frontend Playwright suite | **21 passed, 0 failed** | `reports/test-runs/frontend-junit.xml` |
-| Built-in test runner | 103 passed, 0 failed | `reports/test-runs/` |
+| Built-in test runner | 112 passed, 0 failed | `reports/test-runs/` |
 | PDF report generation | `%PDF-` verified for all 9 report types | `reports/*.pdf` |
 | Intelligence CSV exports | Four kinds with status headers and no fabricated rows | `frontend/src/services/api.js` |
 | MySQL DDL | Generated from SQLAlchemy metadata; runtime import **not verified** (MySQL/Docker unavailable) | `database/schema.sql` |

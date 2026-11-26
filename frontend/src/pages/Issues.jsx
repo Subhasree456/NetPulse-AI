@@ -269,9 +269,9 @@ export default function Issues() {
     <div className="space-y-5">
       <PageHeader
         eyebrow="Accountable incident response"
-        title="Issue management"
-        description="Automatic rule-generated tickets, duplicate suppression, priority tracking and a complete administrator comment trail."
-        actions={hasRole('analyst') ? <Button variant="primary" size="sm" icon={Plus} onClick={() => setCreateOpen(true)}>New ticket</Button> : null}
+        title="Incidents"
+        description="Automatic rule-generated incidents, duplicate suppression, priority tracking and a complete administrator comment trail. The same register remains available at the legacy issue-management route."
+        actions={hasRole('analyst') ? <Button variant="primary" size="sm" icon={Plus} onClick={() => setCreateOpen(true)}>New incident</Button> : null}
       />
 
       {stats.critical > 0 && (

@@ -69,6 +69,35 @@ export function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+export function formatBps(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—'
+  const number = Number(value)
+  const units = ['bps', 'Kbps', 'Mbps', 'Gbps']
+  let scaled = number
+  let index = 0
+  while (scaled >= 1000 && index < units.length - 1) {
+    scaled /= 1000
+    index += 1
+  }
+  return `${scaled >= 100 ? scaled.toFixed(0) : scaled.toFixed(scaled >= 10 ? 1 : 2)} ${units[index]}`
+}
+
+export function formatUptime(seconds) {
+  if (seconds === null || seconds === undefined || Number.isNaN(Number(seconds))) return '—'
+  const total = Math.max(0, Math.floor(Number(seconds)))
+  const days = Math.floor(total / 86400)
+  const hours = Math.floor((total % 86400) / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`
+  if (hours > 0) return `${hours}h ${minutes}m`
+  return `${minutes}m`
+}
+
+export function formatPercent(value, digits = 0) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—'
+  return `${Number(value).toFixed(digits)}%`
+}
+
 export function truncate(value, length = 120) {
   if (!value) return ''
   return value.length > length ? `${value.slice(0, length)}…` : value

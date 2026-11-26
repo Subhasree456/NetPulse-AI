@@ -745,11 +745,11 @@ automatically switches to real observations.
 | Security | Argon2, JWT, RBAC, throttle, headers, validation | 7 security tests, 12 auth tests |
 | Reliability | Error handling, offline records, scheduler lock | Monitoring tests, smoke tests |
 | Usability | Dark/light theme, responsive layout, skeletons, toasts, palette | 21 E2E tests, 21 screenshots |
-| Maintainability | Layered modules, shared UI, typed schemas, env config | Code structure, 80% coverage |
+| Maintainability | Layered modules, shared UI, typed schemas, env config | Code structure, 70% coverage |
 | Portability | SQLite/MySQL, OS-specific ping commands, env paths | Tested Windows; Linux/macOS commands included |
 | Privacy | ARP only, SHA-256 identity, masked MAC, no raw capture | Device tests, UI privacy notice |
 | Integrity | `data_origin`, simulation exclusion, disclaimers | AP/device/monitoring tests |
-| Testability | Isolated fixtures, no live probes in tests, JUnit import | 103 + 21 passing tests |
+| Testability | Isolated fixtures, no live probes in tests, JUnit import | 112 + 21 passing tests |
 
 ---
 
@@ -769,7 +769,7 @@ NetPulse-AI/
 │   │   │                        settings, test_runner
 │   │   ├── troubleshooting/    rule engine
 │   │   └── main.py
-│   ├── tests/                  103 Pytest tests + isolated conftest
+│   ├── tests/                  112 Pytest tests + isolated conftest
 │   ├── .env.example
 │   └── requirements.txt
 ├── frontend/

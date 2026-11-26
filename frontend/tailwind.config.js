@@ -100,6 +100,7 @@ export default {
           strong: 'rgb(var(--accent-strong-rgb) / <alpha-value>)',
           soft: 'rgb(var(--accent-rgb) / 0.12)',
         },
+        signal: 'rgb(var(--lime-rgb) / <alpha-value>)',
         cyan: 'rgb(var(--cyan-rgb) / <alpha-value>)',
         success: 'rgb(var(--success-rgb) / <alpha-value>)',
         warning: 'rgb(var(--warning-rgb) / <alpha-value>)',
@@ -109,9 +110,10 @@ export default {
         neutral: 'rgb(var(--neutral-rgb) / <alpha-value>)',
       },
       boxShadow: {
-        glow: '0 0 0 1px rgba(139,92,246,.26), 0 18px 60px -24px rgba(139,92,246,.55)',
-        'glow-cyan': '0 0 0 1px rgba(34,211,238,.22), 0 18px 60px -26px rgba(34,211,238,.45)',
-        card: '0 1px 0 0 rgba(255,255,255,.04), 0 28px 70px -42px rgba(0,0,0,.95)',
+        glow: '0 0 0 1px rgba(56,189,248,.24), 0 20px 60px -26px rgba(56,189,248,.5)',
+        'glow-cyan': '0 0 0 1px rgba(56,189,248,.2), 0 18px 60px -26px rgba(56,189,248,.42)',
+        'glow-lime': '0 0 0 1px rgba(190,242,100,.2), 0 18px 60px -28px rgba(190,242,100,.4)',
+        card: '0 1px 0 0 rgba(255,255,255,.03), 0 28px 70px -44px rgba(0,0,0,.98)',
       },
       keyframes: {
         'fade-up': {

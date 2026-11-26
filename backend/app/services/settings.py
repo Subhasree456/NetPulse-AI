@@ -13,6 +13,10 @@ DEFAULT_SETTINGS: dict[str, object] = {
     "packet_loss_threshold_pct": settings.packet_loss_threshold_pct,
     "auto_tickets_enabled": settings.auto_tickets_enabled,
     "auto_anomaly_detection": settings.auto_anomaly_detection,
+    "cpu_threshold_pct": settings.cpu_threshold_pct,
+    "memory_threshold_pct": settings.memory_threshold_pct,
+    "disk_threshold_pct": settings.disk_threshold_pct,
+    "agent_offline_after_seconds": settings.host_offline_after_seconds,
     "theme_default": "dark",
     "organization_name": "NetPulse AI",
 }

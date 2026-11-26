@@ -26,9 +26,8 @@ test.describe('Authentication and access control', () => {
   test('the administrator can sign in and the session survives a reload', async ({ page }) => {
     await login(page)
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Network state' })).toBeVisible()
-    await expect(page.getByText('Live probes').first()).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Operations overview' })).toBeVisible()
+    await expect(page.getByText('Live health index')).toBeVisible()
     await expect(page.getByText('admin@netpulse.ai').first()).toBeVisible()
 
     await page.reload()

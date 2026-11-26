@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.api.deps import AdminUser, AnalystUser, CurrentUser, DbSession
+from app.intelligence.common import iso
 from app.models import AccessPoint, AccessPointHistory, NetworkMeasurement
 from app.schemas.schemas import (
     AccessPointCreate,
@@ -199,7 +200,7 @@ def access_point_performance(
         "simulated": ap.is_simulated,
         "points": [
             {
-                "timestamp": m.recorded_at.isoformat(),
+                "timestamp": iso(m.recorded_at),
                 "latency_ms": m.latency_ms,
                 "packet_loss_pct": m.packet_loss_pct,
                 "is_online": m.is_online,

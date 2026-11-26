@@ -15,6 +15,12 @@ def test_get_settings_contract(client, admin_headers):
         "auto_tickets_enabled",
         "auto_anomaly_detection",
         "device_discovery_enabled",
+        "cpu_threshold_pct",
+        "memory_threshold_pct",
+        "disk_threshold_pct",
+        "host_metric_interval_seconds",
+        "host_monitoring_enabled",
+        "threat_intel_enabled",
         "theme_default",
         "organization_name",
     } == set(body)

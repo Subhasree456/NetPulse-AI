@@ -38,6 +38,7 @@ import {
   Toggle,
   cn,
 } from '../components/ui'
+import AgentManager from '../components/AgentManager'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../context/ToastContext'
@@ -122,6 +123,9 @@ export default function Settings() {
       setForm({
         latency_threshold_ms: settings.data.latency_threshold_ms,
         packet_loss_threshold_pct: settings.data.packet_loss_threshold_pct,
+        cpu_threshold_pct: settings.data.cpu_threshold_pct,
+        memory_threshold_pct: settings.data.memory_threshold_pct,
+        disk_threshold_pct: settings.data.disk_threshold_pct,
         auto_tickets_enabled: settings.data.auto_tickets_enabled,
         auto_anomaly_detection: settings.data.auto_anomaly_detection,
         theme_default: settings.data.theme_default,
@@ -144,6 +148,9 @@ export default function Settings() {
         ...current,
         latency_threshold_ms: response.data.latency_threshold_ms,
         packet_loss_threshold_pct: response.data.packet_loss_threshold_pct,
+        cpu_threshold_pct: response.data.cpu_threshold_pct,
+        memory_threshold_pct: response.data.memory_threshold_pct,
+        disk_threshold_pct: response.data.disk_threshold_pct,
         auto_tickets_enabled: response.data.auto_tickets_enabled,
         auto_anomaly_detection: response.data.auto_anomaly_detection,
         theme_default: response.data.theme_default,
@@ -169,7 +176,7 @@ export default function Settings() {
       <PageHeader
         eyebrow="Workspace administration"
         title="Settings"
-        description="Configure operational thresholds, automation guardrails, team access and workspace appearance."
+        description="Configure operational thresholds, host telemetry, monitoring agents, automation guardrails, team access and workspace appearance."
         actions={<Button variant="primary" size="sm" icon={Save} onClick={save} loading={saving} disabled={!admin}>Save settings</Button>}
       />
 
@@ -187,6 +194,23 @@ export default function Settings() {
               <Field label="Packet-loss threshold (%)" hint="Sustained loss at or above this value triggers escalation.">
                 <input type="number" min="0" max="100" step="0.1" className="input" disabled={!admin} value={form.packet_loss_threshold_pct} onChange={(event) => update('packet_loss_threshold_pct', Number(event.target.value))} />
               </Field>
+            </div>
+            <div className="mt-4 border-t border-app pt-4">
+              <p className="hud-label mb-2">Host telemetry thresholds</p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="CPU (%)" hint="psutil host CPU pressure.">
+                  <input type="number" min="1" max="100" step="1" className="input" disabled={!admin} value={form.cpu_threshold_pct ?? ''} onChange={(event) => update('cpu_threshold_pct', Number(event.target.value))} />
+                </Field>
+                <Field label="Memory (%)" hint="Used physical memory.">
+                  <input type="number" min="1" max="100" step="1" className="input" disabled={!admin} value={form.memory_threshold_pct ?? ''} onChange={(event) => update('memory_threshold_pct', Number(event.target.value))} />
+                </Field>
+                <Field label="Disk (%)" hint="Most-used mounted volume.">
+                  <input type="number" min="1" max="100" step="1" className="input" disabled={!admin} value={form.disk_threshold_pct ?? ''} onChange={(event) => update('disk_threshold_pct', Number(event.target.value))} />
+                </Field>
+              </div>
+              <p className="mt-2 text-[9px] leading-relaxed text-subtle">
+                Collection interval {settings.data.host_metric_interval_seconds ?? '—'}s · host monitoring {settings.data.host_monitoring_enabled ? 'enabled' : 'disabled'} · threat intel {settings.data.threat_intel_enabled ? 'enabled' : 'disabled'}. These switches are environment-managed.
+              </p>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {[
@@ -309,6 +333,8 @@ export default function Settings() {
           <div className="border-t border-app px-4 py-2.5"><InfoNote>Roles: Viewer can read; Analyst can run diagnostics and manage issues; Admin can change configuration, devices, reports and tests.</InfoNote></div>
         </section>
       )}
+
+      <AgentManager />
 
       <CreateUserModal open={createUserOpen} onClose={() => setCreateUserOpen(false)} onCreated={users.reload} />
     </div>

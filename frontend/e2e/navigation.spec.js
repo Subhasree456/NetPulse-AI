@@ -2,15 +2,16 @@ import { test, expect } from '@playwright/test'
 import { login, openModule } from './helpers'
 
 const MODULES = [
-  { link: 'Overview', heading: 'Overview', marker: 'Live health index' },
-  { link: 'Real-Time Monitoring', heading: 'Network monitoring', marker: 'Live latency timeline' },
-  { link: 'Predictive Analytics', heading: 'Predictive analytics', marker: 'Failure risk by scope' },
-  { link: 'Root Cause Analysis', heading: 'Root cause analysis', marker: 'Investigation queue' },
-  { link: 'Cybersecurity Intelligence', heading: 'Cybersecurity', marker: 'Defensive posture' },
-  { link: 'Network Optimization', heading: 'Network optimization', marker: 'Optimisation advisory' },
-  { link: 'Devices & Access Points', heading: 'Connected devices', marker: 'Device registry' },
-  { link: 'Anomalies & Issues', heading: 'AI anomaly detection', marker: 'Detected anomalies' },
-  { link: 'Reports & Analytics', heading: 'Reports', marker: 'Report studio' },
+  { link: 'Overview', heading: 'Operations overview', marker: 'Live health index' },
+  { link: 'Live Monitoring', heading: 'Live monitoring', marker: 'Resource pressure' },
+  { link: 'AI Intelligence', heading: 'AI intelligence', marker: 'Host risk register' },
+  { link: 'AI Network Copilot', heading: 'Ask your network', marker: 'Grounded prompts' },
+  { link: 'Cybersecurity', heading: 'Cybersecurity', marker: 'Defensive posture' },
+  { link: 'Devices', heading: 'Connected devices', marker: 'Device registry' },
+  { link: 'Network Topology', heading: 'Network topology', marker: 'Correlated graph' },
+  { link: 'Incidents', heading: 'Incidents', marker: 'Ticket register' },
+  { link: 'Automation', heading: 'Automation', marker: 'Troubleshooting runbooks' },
+  { link: 'Analytics & Reports', heading: 'Reports', marker: 'Report studio' },
   { link: 'Settings', heading: 'Settings', marker: 'Monitoring thresholds' },
 ]
 
@@ -23,7 +24,7 @@ test.describe('Workspace navigation', () => {
     page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
 
     await login(page)
-    await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link')).toHaveCount(10)
+    await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link')).toHaveCount(11)
 
     for (const module of MODULES) {
       await openModule(page, module.link, module.heading)
@@ -42,7 +43,7 @@ test.describe('Workspace navigation', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Reports' })).toBeVisible()
     await expect(page.getByText('Report studio')).toBeVisible()
 
-    for (const path of ['/predictive', '/root-cause', '/security', '/optimization']) {
+    for (const path of ['/monitoring', '/intelligence', '/copilot', '/topology', '/automation', '/incidents', '/probes', '/predictive', '/root-cause', '/security', '/optimization']) {
       await page.goto(path)
       await expect(page.getByText('Something went wrong')).toHaveCount(0)
       await expect(page.getByText('Unable to load data')).toHaveCount(0)
